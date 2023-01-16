@@ -1,0 +1,16 @@
+#service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: fastapi-service
+
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      name: service-port
+      targetPort: 8000 # MUST be the port exposed by FastAPI "CMD" in DockerFile
+      port: 5000 # Choose what you want here
+  selector:
+    app: fastapi
