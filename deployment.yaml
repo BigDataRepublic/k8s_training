@@ -20,6 +20,6 @@ spec:
       containers:
       - name: fastapi-container
         image: app:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000 # Same as service target port

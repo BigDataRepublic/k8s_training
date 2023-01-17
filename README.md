@@ -2,13 +2,13 @@
 ### ZSH autocompletions
 Add the two following lines at the end of your ~/.zshrc file then reopen a new terminal:
 ```
-[[ $commands[kubectl] ]] && source <(kubectl completion zsh) 
+[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 [[ $commands[minikube] ]] && source <(minikube completion zsh)
 ```
 
 If you type minikube <TAB> or kubectl <TAB> it should give you a list of commands
 
-Furthermore, install the dependencies using Poetry: 
+Furthermore, install the dependencies using Poetry:
 ```
 pip install poetry
 poetry install
@@ -49,7 +49,7 @@ minikube   Ready    control-plane   76d   v1.25.2
 eval $(minikube docker-env)
 ```
 
-See the [following](https://stackoverflow.com/questions/52310599/what-does-minikube-docker-env-mean) Stackoverflow page for a more elaborate explanation of this. 
+See the [following](https://stackoverflow.com/questions/52310599/what-does-minikube-docker-env-mean) Stackoverflow page for a more elaborate explanation of this.
 
 ❓ Now build the Dockerfile against the docker inside Minikube, which is instantly accessible to Kubernetes cluster.
 ```
@@ -61,6 +61,5 @@ docker build -t app .
 
 <details>
   <summary markdown='span'> 💡 Target hint </summary>
-    The target port should correspond to the port on which you are exposing your Fastapi application. 
+    The target port should correspond to the port on which you are exposing your Fastapi application.
 </details>
-

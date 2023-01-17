@@ -12,6 +12,7 @@ WORKDIR /app
 COPY api api
 COPY pyproject.toml pyproject.toml
 COPY data data
+COPY artifacts artifacts
 
 RUN pip3 install --upgrade --no-cache-dir pip \
     && pip3 install poetry \

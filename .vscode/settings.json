@@ -7,4 +7,5 @@
     "spellright.language": [
         "en"
     ],
+    "dbt.queryLimit": 500,
 }
