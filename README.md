@@ -57,9 +57,39 @@ docker build -t app .
 ```
 
 # 4️⃣ Create a K8s Service
-❓ Create your own `service.yaml` and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. What port should you it target ?
+❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. What port should you it target ?
 
 <details>
   <summary markdown='span'> 💡 Target hint </summary>
     The target port should correspond to the port on which you are exposing your Fastapi application.
 </details>
+
+❓ Apply the service by running:
+```bash
+kubectl apply -f api-service.yaml
+```
+
+# 5️⃣ Create a K8s Deployment
+❓ Create a configuration file for our deployment - `k8s-deployment/api/api-deployment.yaml`
+❓ Apply the deployment by running:
+```bash
+kubectl apply -f api-deployment.yaml
+```
+
+# 6️⃣ Forwarding the service
+```bash
+kubectl port-forward service/fastapi-service 8000:4000
+```
+
+# 7️⃣ Sending a request
+Go to `http://localhost:8000` in your browser, you should see the following message:
+```
+{"message":"API is up and running!"}
+```
+
+Or send a post request to the `/predict` endpoint by running:
+```bash
+poetry run python -m api.api_requests
+```
+
+This should return a list of tuples with a prediction per ID for the `data/test.csv` file.
