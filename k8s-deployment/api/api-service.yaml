@@ -10,6 +10,6 @@ spec:
     - protocol: TCP
       name: service-port
       targetPort: 8000 # MUST be the port exposed by FastAPI "CMD" in DockerFile
-      port: 4000 # Choosing the same port here as that simplifies local dev
+      port: 4000 # Can be any port
   selector:
     app: fastapi
