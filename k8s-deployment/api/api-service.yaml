@@ -1,4 +1,3 @@
-#service.yaml
 apiVersion: v1
 kind: Service
 
@@ -11,6 +10,6 @@ spec:
     - protocol: TCP
       name: service-port
       targetPort: 8000 # MUST be the port exposed by FastAPI "CMD" in DockerFile
-      port: 4000 # Choose what you want here
+      port: 8000 # Choosing the same port here as that simplifies local dev
   selector:
     app: fastapi

@@ -9,14 +9,16 @@ ENV PYTHONUNBUFFERED 1
 #Setup workdir
 WORKDIR /app
 
-COPY api api
 COPY pyproject.toml pyproject.toml
-COPY data data
-COPY artifacts artifacts
+COPY poetry.lock poetry.lock
 
 RUN pip3 install --upgrade --no-cache-dir pip \
     && pip3 install poetry \
-    && poetry install --only main
+    && poetry install --only main --no-ansi
+
+COPY data data
+COPY artifacts artifacts
+COPY api api
 
 EXPOSE 8000
 
