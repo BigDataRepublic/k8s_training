@@ -9,7 +9,6 @@ packages = [{include = "api"}]
 python = "^3.8"
 fastapi = "^0.88.0"
 uvicorn = "^0.20.0"
-sklearn = "^0.0.post1"
 joblib = "^1.2.0"
 pandas = "^1.5.2"
 scikit-learn = "^1.2.0"

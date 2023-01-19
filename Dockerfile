@@ -1,20 +1,26 @@
-FROM python:3.8.14-slim
+FROM python:3.8.14-slim as build
 
-#Do not use env as this would persist after the build and would impact your containers, children images
-ARG DEBIAN_FRONTEND=noninteractive
+ENV PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_VERSION=1.3.1
 
-# force the stdout and stderr streams to be unbuffered.
-ENV PYTHONUNBUFFERED 1
+RUN pip install "poetry==$POETRY_VERSION"
+
+WORKDIR /app
+COPY pyproject.toml poetry.lock ./
+
+RUN poetry install --no-root && \
+    poetry export -f requirements.txt -o requirements.txt
+
+FROM python:3.8.14-slim as final
 
 #Setup workdir
 WORKDIR /app
 
-COPY pyproject.toml pyproject.toml
-COPY poetry.lock poetry.lock
+COPY --from=build /app/requirements.txt .
 
-RUN pip3 install --upgrade --no-cache-dir pip \
-    && pip3 install poetry \
-    && poetry install --only main --no-ansi
+RUN pip install -r requirements.txt
 
 COPY data data
 COPY artifacts artifacts
@@ -22,8 +28,4 @@ COPY api api
 
 EXPOSE 8000
 
-ENTRYPOINT [ "poetry", "run" ]
-
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
-#size: 143MB
