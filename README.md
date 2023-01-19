@@ -89,7 +89,13 @@ Go to `http://localhost:8000` in your browser, you should see the following mess
 
 Or send a post request to the `/predict` endpoint by running:
 ```bash
-poetry run python -m api.api_requests
+poetry run python -m api.api_requests -e predict
+```
+This should return a list of tuples with a prediction per ID for the `data/test.csv` file.
+
+Or send a post request to the `/train` endpoint by running:
+```bash
+poetry run python -m api.api_requests -e train
 ```
 
-This should return a list of tuples with a prediction per ID for the `data/test.csv` file.
+This will train a Random Forest model on `data/train.csv` and save a model under `artifacts/rf.pkl`.
