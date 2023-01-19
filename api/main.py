@@ -38,7 +38,7 @@ def api_predict(model_path: str = Form(...), data_path: str = Form(...)):
         )
     # Connect to the database
     conn = psycopg2.connect(
-        host="postgres-service",
+        host="postgres",
         port="5432",
         dbname="database",
         user="user",
@@ -49,6 +49,10 @@ def api_predict(model_path: str = Form(...), data_path: str = Form(...)):
     cursor = conn.cursor()
 
     # Insert the predictions into the database
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS predictions (id INT, label VARCHAR(255));"
+    )
+
     for id, label in predictions:
         cursor.execute(
             "INSERT INTO predictions (id, label) VALUES (%s, %s)", (id, label)
