@@ -99,3 +99,46 @@ poetry run python -m api.api_requests -e train
 ```
 
 This will train a Random Forest model on `data/train.csv` and save a model under `artifacts/rf.pkl`.
+
+# 8️⃣ Incorporate a database 💾
+### 8.1) Volumes
+It is now time to incorporate Postgres into the setup in order to store the data and the results from the ML model. Just like in Docker-compose we need to keep our Postgres data into volumes. In Kubernetes there are two parts to volumes though - **volumes**, and **volume claims**.
+- **Volumes**: this creates the space on the cluster for a database
+- **Volume claims**: this gives a pod access to that volume - it therefore describes how the pod will be accessing the volume and how much space it can claim on this total volume.
+
+❓ Incorporate a volume in `k8s-deployment/postgres/postgres-pv.yaml`
+❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
+
+### 8.2) Secrets
+ConfigMaps provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Values in a ConfigMap and be key-pair strings, entire files, or both. Which you use depends on your implementation.
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres
+data:
+  POSTGRES_DB: myapp_production
+```
+
+For sensitive data, such as user credentials, Kubernetes Secrets allow you to more safely store data in the cluster. Like ConfigMap, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
+
+❓ Create another file `postgres-secret.yaml`. You can use the k8sSecret template. Then set the name to postgres-secrets.
+```bash
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secrets
+  namespace: default
+type: Opaque
+data:
+  POSTGRES_USER: dXNlcg==
+  POSTGRES_PASSWORD: cGFzc3dvcmQ=
+```
+
+Notice the value used for POSTGRES_PASSWORD. That value is not the actual password. Rather, it is base64 encoded string of the password. Do not confuse base64 encoding with encryption. It merely serves to obfuscate the password to prevent prying eyes from easily reading it.
+
+```
+printf password | base64
+```
+
+Now we have our secrets and are ready to create our Postgres pod! 🚀

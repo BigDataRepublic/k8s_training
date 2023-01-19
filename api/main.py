@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Form
 from api.predict import Inference
 from api.train import Trainer, Model
+import psycopg2
 
 app = FastAPI()
 
@@ -35,6 +36,31 @@ def api_predict(model_path: str = Form(...), data_path: str = Form(...)):
             status_code=500,
             detail="An error occurred during the prediction process. Please check the model and data paths and try again.",
         )
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="postgres-service",
+        port="5432",
+        dbname="database",
+        user="user",
+        password="password",
+    )
+
+    # Create a cursor
+    cursor = conn.cursor()
+
+    # Insert the predictions into the database
+    for id, label in predictions:
+        cursor.execute(
+            "INSERT INTO predictions (id, label) VALUES (%s, %s)", (id, label)
+        )
+
+    # Commit the changes
+    conn.commit()
+
+    # Close the cursor and connection
+    cursor.close()
+    conn.close()
+
     return predictions
 
 
