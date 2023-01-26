@@ -22,7 +22,7 @@ def api_request(model_path: str, data_path: str) -> None:
         raise ValueError(f"Invalid data path: {data_path}")
     try:
         response = requests.post(
-            f"http://localhost:8000/{args.endpoint}",
+            f"http://fastapi-service:8000/{args.endpoint}",
             data={"model_path": model_path, "data_path": data_path},
         )
         response.raise_for_status()

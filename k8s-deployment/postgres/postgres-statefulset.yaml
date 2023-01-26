@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-statefulset
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:11.4
+          envFrom:
+          - secretRef:
+              name: postgres-secrets
+          ports:
+            - containerPort: 5432
+              name: access
+              protocol: TCP
+          volumeMounts:
+            - name: postgres-mount
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-mount
+          persistentVolumeClaim:
+            claimName: postgres-volume-claim
