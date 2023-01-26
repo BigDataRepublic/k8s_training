@@ -27,6 +27,3 @@ spec:
             name: postgres-secrets
         - configMapRef:
             name: postgres-env
-        env:
-        - name: ENV
-          value: fastapi-service

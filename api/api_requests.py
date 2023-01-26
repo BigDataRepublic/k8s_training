@@ -22,6 +22,7 @@ def api_request(model_path: str, data_path: str) -> None:
         raise ValueError(f"Invalid data path: {data_path}")
 
     env = os.environ.get("ENV", "local")
+    print(f"Environment: {env}")
     if env == "local":
         url = f"http://localhost:8000/{args.endpoint}"
     else:
