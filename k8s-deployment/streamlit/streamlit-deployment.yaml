@@ -3,25 +3,26 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: fastapi-deployment
+  name: streamlit-deployment
 
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: fastapi
+      app: streamlit
 
   template:
     metadata:
       labels:
-        app: fastapi
+        app: streamlit
+
     spec:
       containers:
-      - name: fastapi-container
-        image: app:latest
+      - name: streamlit-container
+        image: streamlit-app:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 8000 # Same as service target port
+        - containerPort: 8501
         envFrom:
         - secretRef:
             name: postgres-secrets

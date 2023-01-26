@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Form
 from api.predict import Inference
 from api.train import Trainer, Model
 import psycopg2
+import os
 
 app = FastAPI()
 
@@ -38,11 +39,11 @@ def api_predict(model_path: str = Form(...), data_path: str = Form(...)):
         )
     # Connect to the database
     conn = psycopg2.connect(
-        host="postgres",
-        port="5432",
-        dbname="database",
-        user="user",
-        password="password",
+        host=os.getenv("POSTGRES_HOST"),
+        port=os.getenv("POSTGRES_PORT"),
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
     )
 
     # Create a cursor
@@ -64,7 +65,7 @@ def api_predict(model_path: str = Form(...), data_path: str = Form(...)):
     # Close the cursor and connection
     cursor.close()
     conn.close()
-
+    print("Predictions succesfully stored into the database!")
     return predictions
 
 
@@ -80,6 +81,7 @@ def api_train(model_path: str = Form(...), data_path: str = Form(...)):
     try:
         model = Trainer(data_path).train()
         Model(model).save(model_path)
+        print(f"Model successfully trained and saved in {model_path}!")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

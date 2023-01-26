@@ -18,17 +18,9 @@ spec:
       containers:
         - name: postgres
           image: postgres:11.4
-          env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  key: POSTGRES_USER
-                  name: postgres-secrets
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: POSTGRES_PASSWORD
-                  name: postgres-secrets
+          envFrom:
+          - secretRef:
+              name: postgres-secrets
           ports:
             - containerPort: 5432
               name: access

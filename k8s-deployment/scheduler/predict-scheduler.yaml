@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: predict-job
+  namespace: default
+spec:
+  schedule: "*/1 * * * *" # every minute
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fastapi-container
+            image: app:latest
+            imagePullPolicy: Never
+            command: ["python", "-m", "api.api_requests", "-e", "predict"]
+          restartPolicy: OnFailure

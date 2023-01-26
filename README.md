@@ -142,3 +142,8 @@ printf password | base64
 ```
 
 Now we have our secrets and are ready to create our Postgres pod! 🚀
+
+### 8.3) Statefulset
+**Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a StatefulSet as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the persistent pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
+
+❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values.
