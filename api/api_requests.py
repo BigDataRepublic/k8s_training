@@ -20,9 +20,16 @@ def api_request(model_path: str, data_path: str) -> None:
         raise ValueError(f"Invalid model path: {model_path}")
     if not os.path.isfile(data_path):
         raise ValueError(f"Invalid data path: {data_path}")
+
+    env = os.environ.get("ENV", "local")
+    if env == "local":
+        url = f"http://localhost:8000/{args.endpoint}"
+    else:
+        url = f"http://fastapi-service:8000/{args.endpoint}"
+
     try:
         response = requests.post(
-            f"http://fastapi-service:8000/{args.endpoint}",
+            url,
             data={"model_path": model_path, "data_path": data_path},
         )
         response.raise_for_status()
