@@ -21,12 +21,9 @@ def api_request(model_path: str, data_path: str) -> None:
     if not os.path.isfile(data_path):
         raise ValueError(f"Invalid data path: {data_path}")
 
-    env = os.environ.get("ENV", "local")
+    env = os.environ.get("ENV", "localhost")
     print(f"Environment: {env}")
-    if env == "local":
-        url = f"http://localhost:8000/{args.endpoint}"
-    else:
-        url = f"http://fastapi-service:8000/{args.endpoint}"
+    url = f"http://{env}:8000/{args.endpoint}"
 
     try:
         response = requests.post(
