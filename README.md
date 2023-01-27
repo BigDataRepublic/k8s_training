@@ -6,7 +6,7 @@ Add the two following lines at the end of your ~/.zshrc file then reopen a new t
 [[ $commands[minikube] ]] && source <(minikube completion zsh)
 ```
 
-If you type minikube <TAB> or kubectl <TAB> it should give you a list of commands
+If you type `minikube` <TAB> or `kubectl` <TAB> it should give you a list of commands
 
 Furthermore, install the dependencies using Poetry:
 ```
