@@ -87,18 +87,14 @@ Go to `http://localhost:8000` in your browser, you should see the following mess
 {"message":"API is up and running!"}
 ```
 
-Or send a post request to the `/predict` endpoint by running:
-```bash
-poetry run python -m api.api_requests -e predict
-```
-This should return a list of tuples with a prediction per ID for the `data/test.csv` file.
-
 Or send a post request to the `/train` endpoint by running:
 ```bash
 poetry run python -m api.api_requests -e train
 ```
 
 This will train a Random Forest model on `data/train.csv` and save a model under `artifacts/rf.pkl`.
+
+Before we can trigger the `\predict` endpoint we need to set up a database in order to store the predictions.
 
 # 8️⃣ Incorporate a database 💾
 ### 8.1) Volumes
@@ -107,10 +103,12 @@ It is now time to incorporate Postgres into the setup in order to store the data
 - **Volume claims**: this gives a pod access to that volume - it therefore describes how the pod will be accessing the volume and how much space it can claim on this total volume.
 
 ❓ Incorporate a volume in `k8s-deployment/postgres/postgres-pv.yaml`
+
 ❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
 
 ### 8.2) Secrets
-ConfigMaps provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Values in a ConfigMap and be key-pair strings, entire files, or both. Which you use depends on your implementation.
+`ConfigMaps` provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Here is an example:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -120,9 +118,15 @@ data:
   POSTGRES_DB: myapp_production
 ```
 
-For sensitive data, such as user credentials, Kubernetes Secrets allow you to more safely store data in the cluster. Like ConfigMap, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
+❓ Create a file `postgres-configmaps.yaml`. You can use the k8sSecret template. Then set the name to `postgres-env`. There are 3 environment variables that we need to set:
+1. POSTGRES_DB 👉 you can use any name
+2. POSTGRES_HOST 👉 you can use any name
+3. POSTGRES_PORT 👉 this should be "5432"
 
-❓ Create another file `postgres-secret.yaml`. You can use the k8sSecret template. Then set the name to postgres-secrets.
+For sensitive data, such as user credentials, **Kubernetes Secrets** allow you to more safely store data in the cluster. Like **ConfigMap**, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
+
+❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`.
+
 ```bash
 apiVersion: v1
 kind: Secret
@@ -146,4 +150,22 @@ Now we have our secrets and are ready to create our Postgres pod! 🚀
 ### 8.3) Statefulset
 **Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a StatefulSet as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the persistent pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
 
-❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values.
+❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values. You need to use the environment variables from your ConfigMaps file and the secrets from `postgres-secrets`.
+
+### 8.4) Service
+❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
+
+### 8.5) Connect it all together!
+Apply your postgres configuration by running:
+
+```bash
+kubectl apply -f . --recursive
+```
+
+### 8.6) Test your solution
+You can send a post request to the `/predict` endpoint by running:
+```bash
+poetry run python -m api.api_requests -e predict
+```
+
+This should store predictions for the `data/test.csv` file into the `postgres` database.
