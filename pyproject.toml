@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "01-minikube-kubectl"
+version = "0.1.0"
+description = ""
+authors = ["Bjorn van Dijkman <bjorn.van.dijkman@vantage-ai.com>"]
+packages = [{include = "api"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.9.7 || >3.9.7,<4.0"
+fastapi = "^0.88.0"
+uvicorn = "^0.20.0"
+joblib = "^1.2.0"
+pandas = "^1.5.2"
+scikit-learn = "^1.2.0"
+python-multipart = "^0.0.5"
+psycopg2-binary = "^2.9.5"
+streamlit = "^1.17.0"
+requests = "^2.28.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^2.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[virtualenvs]
+in-project = true
