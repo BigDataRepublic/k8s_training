@@ -8,6 +8,7 @@ def main():
     predictions = Visualizations(data)
     predictions.show_chart()
     db.close_connection()
+    print("Running the streamlit app!")
 
 
 if __name__ == "__main__":

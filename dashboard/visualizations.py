@@ -19,5 +19,6 @@ class Visualizations:
                 color="label",
             )
         )
+        st.title("Predictions 🚀🚀🚀")
         st.altair_chart(chart, use_container_width=True)
         st.info(f"There is a total of {len(pandas_df)} predictions.")

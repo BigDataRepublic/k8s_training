@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import mlflow
+import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
@@ -21,7 +23,11 @@ class Trainer:
         return X, y
 
     def train(self):
-        self.model.fit(self.X, self.y)
+        with mlflow.start_run():
+            self.model.fit(self.X, self.y)
+            mlflow.log_param("model_type", "RandomForestClassifier")
+            mlflow.sklearn.log_model(self.model, "model")
+            print("MLFlow run with run_id {}".format(mlflow.active_run().info.run_id))
         return self.model
 
 

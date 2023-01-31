@@ -71,6 +71,7 @@ kubectl apply -f api-service.yaml
 
 # 5️⃣ Create a K8s Deployment
 ❓ Create a configuration file for our deployment - `k8s-deployment/api/api-deployment.yaml`
+
 ❓ Apply the deployment by running:
 ```bash
 kubectl apply -f api-deployment.yaml
@@ -106,7 +107,7 @@ It is now time to incorporate Postgres into the setup in order to store the data
 
 ❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
 
-### 8.2) Secrets
+### 8.2) ConfigMap
 `ConfigMaps` provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Here is an example:
 
 ```yaml
@@ -118,28 +119,20 @@ data:
   POSTGRES_DB: myapp_production
 ```
 
-❓ Create a file `postgres-configmaps.yaml`. You can use the k8sSecret template. Then set the name to `postgres-env`. There are 3 environment variables that we need to set:
+❓ Create a file `postgres-configmaps.yaml`. You can use the k8ConfigMap template. Then set the name to `postgres-env`. There are 3 environment variables that we need to set:
 1. POSTGRES_DB 👉 you can use any name
 2. POSTGRES_HOST 👉 you can use any name
 3. POSTGRES_PORT 👉 this should be "5432"
 
+
+### 8.2) Secrets
 For sensitive data, such as user credentials, **Kubernetes Secrets** allow you to more safely store data in the cluster. Like **ConfigMap**, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
 
-❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`.
+❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`. The variables that we need to set are:
+1. POSTGRES_USER
+2. POSTGRES_PASSWORD
 
-```bash
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secrets
-  namespace: default
-type: Opaque
-data:
-  POSTGRES_USER: dXNlcg==
-  POSTGRES_PASSWORD: cGFzc3dvcmQ=
-```
-
-Notice the value used for POSTGRES_PASSWORD. That value is not the actual password. Rather, it is base64 encoded string of the password. Do not confuse base64 encoding with encryption. It merely serves to obfuscate the password to prevent prying eyes from easily reading it.
+Do not use any actual hard-coded values for POSTGRES_PASSWORD. Rather, use a **base64** encoded string of the password. Do not confuse base64 encoding with encryption. It merely serves to obfuscate the password to prevent prying eyes from easily reading it.
 
 ```
 printf password | base64
@@ -147,10 +140,16 @@ printf password | base64
 
 Now we have our secrets and are ready to create our Postgres pod! 🚀
 
+
 ### 8.3) Statefulset
-**Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a StatefulSet as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the persistent pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
+**Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a **StatefulSet** as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the **persistent** pod identifiers make it easier to match existing volumes to the new Pods that **replace** any that have failed ❌.
 
 ❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values. You need to use the environment variables from your ConfigMaps file and the secrets from `postgres-secrets`.
+
+❓ Furthermore, you need to mount the `/var/lib/postgresql/data` path in the **postgres** container to a volume
+
+❓ Also make a persistentVolumeClaim using the mounted volume 👆
+
 
 ### 8.4) Service
 ❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
