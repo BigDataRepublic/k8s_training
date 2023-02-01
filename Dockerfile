@@ -1,4 +1,3 @@
-### Install dependencies and export to requirements.txt file
 FROM python:3.11-slim-bullseye as build
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
