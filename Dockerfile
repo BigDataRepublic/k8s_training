@@ -55,6 +55,9 @@ COPY ./api api
 
 EXPOSE 8000
 
+# give permission to write files to the artifacts directory
+RUN chown -R appuser:appuser /app/artifacts
+
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # Set the user to run the application
