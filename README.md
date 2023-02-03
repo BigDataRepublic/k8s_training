@@ -155,16 +155,18 @@ Now we have our secrets and are ready to create our Postgres pod! 🚀
 ❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
 
 ### 8.5) Connect it all together!
-Apply your postgres configuration by running:
+Apply your postgres configuration by running from the **k8s-deployment** subdirectory:
 
 ```bash
 kubectl apply -f . --recursive
 ```
 
 ### 8.6) Test your solution
-You can send a post request to the `/predict` endpoint by running:
+Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
 ```bash
 poetry run python -m api.api_requests -e predict
 ```
 
-This should store predictions for the `data/test.csv` file into the `postgres` database.
+This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
+
+### 9️⃣ Creating an adminer service
