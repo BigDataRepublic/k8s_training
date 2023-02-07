@@ -4,7 +4,7 @@ metadata:
   name: predict-job
   namespace: default
 spec:
-  schedule: "*/1 * * * *" # every minute
+  schedule: "0 1 * * *" # every day at 01:00
   jobTemplate:
     spec:
       template:

@@ -14,7 +14,6 @@ pandas = "^1.5.2"
 scikit-learn = "^1.2.0"
 python-multipart = "^0.0.5"
 psycopg2-binary = "^2.9.5"
-streamlit = "^1.17.0"
 requests = "^2.28.2"
 
 

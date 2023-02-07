@@ -71,6 +71,7 @@ kubectl apply -f api-service.yaml
 
 # 5️⃣ Create a K8s Deployment
 ❓ Create a configuration file for our deployment - `k8s-deployment/api/api-deployment.yaml`
+
 ❓ Apply the deployment by running:
 ```bash
 kubectl apply -f api-deployment.yaml
@@ -87,18 +88,14 @@ Go to `http://localhost:8000` in your browser, you should see the following mess
 {"message":"API is up and running!"}
 ```
 
-Or send a post request to the `/predict` endpoint by running:
-```bash
-poetry run python -m api.api_requests -e predict
-```
-This should return a list of tuples with a prediction per ID for the `data/test.csv` file.
-
 Or send a post request to the `/train` endpoint by running:
 ```bash
 poetry run python -m api.api_requests -e train
 ```
 
 This will train a Random Forest model on `data/train.csv` and save a model under `artifacts/rf.pkl`.
+
+Before we can trigger the `\predict` endpoint we need to set up a database in order to store the predictions.
 
 # 8️⃣ Incorporate a database 💾
 ### 8.1) Volumes
@@ -107,10 +104,12 @@ It is now time to incorporate Postgres into the setup in order to store the data
 - **Volume claims**: this gives a pod access to that volume - it therefore describes how the pod will be accessing the volume and how much space it can claim on this total volume.
 
 ❓ Incorporate a volume in `k8s-deployment/postgres/postgres-pv.yaml`
+
 ❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
 
-### 8.2) Secrets
-ConfigMaps provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Values in a ConfigMap and be key-pair strings, entire files, or both. Which you use depends on your implementation.
+### 8.2) ConfigMap
+`ConfigMaps` provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Here is an example:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -120,22 +119,20 @@ data:
   POSTGRES_DB: myapp_production
 ```
 
-For sensitive data, such as user credentials, Kubernetes Secrets allow you to more safely store data in the cluster. Like ConfigMap, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
+❓ Create a file `postgres-configmaps.yaml`. You can use the k8ConfigMap template. Then set the name to `postgres-env`. There are 3 environment variables that we need to set:
+1. POSTGRES_DB 👉 you can use any name
+2. POSTGRES_HOST 👉 you can use any name
+3. POSTGRES_PORT 👉 this should be "5432"
 
-❓ Create another file `postgres-secret.yaml`. You can use the k8sSecret template. Then set the name to postgres-secrets.
-```bash
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secrets
-  namespace: default
-type: Opaque
-data:
-  POSTGRES_USER: dXNlcg==
-  POSTGRES_PASSWORD: cGFzc3dvcmQ=
-```
 
-Notice the value used for POSTGRES_PASSWORD. That value is not the actual password. Rather, it is base64 encoded string of the password. Do not confuse base64 encoding with encryption. It merely serves to obfuscate the password to prevent prying eyes from easily reading it.
+### 8.2) Secrets
+For sensitive data, such as user credentials, **Kubernetes Secrets** allow you to more safely store data in the cluster. Like **ConfigMap**, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
+
+❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`. The variables that we need to set are:
+1. POSTGRES_USER
+2. POSTGRES_PASSWORD
+
+Do not use any actual hard-coded values for POSTGRES_PASSWORD. Rather, use a **base64** encoded string of the password. Do not confuse base64 encoding with encryption. It merely serves to obfuscate the password to prevent prying eyes from easily reading it.
 
 ```
 printf password | base64
@@ -143,7 +140,51 @@ printf password | base64
 
 Now we have our secrets and are ready to create our Postgres pod! 🚀
 
-### 8.3) Statefulset
-**Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a StatefulSet as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the persistent pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
 
-❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values.
+### 8.3) Statefulset
+**Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a **StatefulSet** as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the **persistent** pod identifiers make it easier to match existing volumes to the new Pods that **replace** any that have failed ❌.
+
+❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values. You need to use the environment variables from your ConfigMaps file and the secrets from `postgres-secrets`.
+
+❓ Furthermore, you need to mount the `/var/lib/postgresql/data` path in the **postgres** container to a volume
+
+❓ Also make a persistentVolumeClaim using the mounted volume 👆
+
+
+### 8.4) Service
+❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
+
+### 8.5) Connect it all together!
+Apply your postgres configuration by running from the **k8s-deployment** subdirectory:
+
+```bash
+kubectl apply -f . --recursive
+```
+
+### 8.6) Test your solution
+Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
+```bash
+poetry run python -m api.api_requests -e predict
+```
+
+This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
+### 9️⃣ Setting up Loki
+Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
+
+Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
+
+Once Helm is installed, you can run the following command to install Loki using Helm:
+```bash
+helm upgrade --install loki grafana/loki-stack  --set grafana.enabled=true,loki.persistence.enabled=true,loki.persistence.storageClassName=nfs-client,loki.persistence.size=5Gi
+```
+
+When exploring our cluster in `Lens` we can see that a new **Daemonset** has been created, called `loki-promtail`. Promtail is an agent which ships the contents of local logs to a Loki. A **Daemonset** ensures that a copy of a pod runs on every node, which is an important property for the collection of logs.
+
+❓ To access the application on our machine we need to port-forward the service. Run the relevant `kubectl` command to forward the right port.
+
+To get the admin password for the Grafana pod, run the following command:
+```bash
+kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+Navigate to `http://localhost:3000` and login with admin and the password output above.
