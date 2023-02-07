@@ -168,5 +168,23 @@ poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
+### 9️⃣ Setting up Loki
+Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
-### 9️⃣ Creating an adminer service
+Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
+
+Once Helm is installed, you can run the following command to install Loki using Helm:
+```bash
+helm upgrade --install loki grafana/loki-stack  --set grafana.enabled=true,loki.persistence.enabled=true,loki.persistence.storageClassName=nfs-client,loki.persistence.size=5Gi
+```
+
+When exploring our cluster in `Lens` we can see that a new **Daemonset** has been created, called `loki-promtail`. Promtail is an agent which ships the contents of local logs to a Loki. A **Daemonset** ensures that a copy of a pod runs on every node, which is an important property for the collection of logs.
+
+❓ To access the application on our machine we need to port-forward the service. Run the relevant `kubectl` command to forward the right port.
+
+To get the admin password for the Grafana pod, run the following command:
+```bash
+kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+Navigate to `http://localhost:3000` and login with admin and the password output above.
