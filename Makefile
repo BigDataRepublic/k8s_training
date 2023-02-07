@@ -16,3 +16,7 @@ predict:
 
 train:
 	poetry run python -m api.api_requests -e train
+
+dive:
+	docker build -t app:latest .
+	dive app:latest
