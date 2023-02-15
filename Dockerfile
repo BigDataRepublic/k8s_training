@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye as build
+FROM python:3.11-slim as build
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to immediately appear
@@ -9,27 +9,16 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_NO_CACHE_DIR=1 \
     POETRY_VERSION=1.3.2
 
-RUN set -ex \
-    # Upgrade the package index and install security upgrades
-    && apt-get update \
-    && apt-get upgrade -y \
-    # Install Poetry
-    && pip install "poetry==$POETRY_VERSION" \
-    # Clean up
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry install --no-root --no-ansi --no-interaction && \
-    poetry export -f requirements.txt -o requirements.txt
-
+RUN pip install "poetry==$POETRY_VERSION" \
+    && poetry install --no-root --no-ansi --no-interaction \
+    && poetry export -f requirements.txt -o requirements.txt
 
 
 ### Final stage
-FROM python:3.11-slim-bullseye as final
+FROM python:3.11-slim as final
 
 WORKDIR /app
 
@@ -42,12 +31,12 @@ RUN set -ex \
     # Upgrade the package index and install security upgrades
     && apt-get update \
     && apt-get upgrade -y \
-    # Install dependencies
-    && pip install -r requirements.txt \
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    # Install dependencies
+    && pip install -r requirements.txt
 
 COPY ./data data
 COPY ./artifacts artifacts
@@ -55,7 +44,7 @@ COPY ./api api
 
 EXPOSE 8000
 
-# give permission to write files to the artifacts directory
+# give permission to write files to the artifacts subdirectory
 RUN chown -R appuser:appuser /app/artifacts
 
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
