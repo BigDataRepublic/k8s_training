@@ -1,3 +1,11 @@
+# Introduction
+You will be deploying a machine learning API, which can be found in the `api` subdirectory. Here is the main flow of the API:
+
+![alt text](pictures/api-flow.png)
+
+The main things that you should know is that we want to store the predictions of the API in a Postgres container on the K8s cluster and that he API is packaged into a Docker image using the Dockerfile in the root directory.
+
+
 # 1️⃣ Setup
 ### ZSH autocompletions
 Add the two following lines at the end of your ~/.zshrc file then reopen a new terminal:
