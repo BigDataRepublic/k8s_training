@@ -3,7 +3,7 @@ You will be deploying a machine learning API, which can be found in the `api` su
 
 ![alt text](pictures/api-flow.png)
 
-The main things that you should know is that we want to store the predictions of the API in a Postgres container on the K8s cluster and that he API is packaged into a Docker image using the Dockerfile in the root directory.
+The main things that you should know is that we want to store the predictions of the API in a Postgres container on the K8s cluster and that the API is packaged into a Docker image using the Dockerfile in the root directory.
 
 
 # 1️⃣ Setup
