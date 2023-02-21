@@ -1,9 +1,0 @@
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: postgres-env
-  namespace: default
-data:
-  POSTGRES_DB: database
-  POSTGRES_HOST: postgres
-  POSTGRES_PORT: "5432"
