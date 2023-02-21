@@ -6,7 +6,7 @@ metadata:
   name: fastapi-deployment
 
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: fastapi
@@ -16,6 +16,9 @@ spec:
       labels:
         app: fastapi
     spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
       containers:
       - name: fastapi-container
         image: app:latest
