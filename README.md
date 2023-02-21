@@ -7,6 +7,8 @@ The main things that you should know is that we want to store the predictions of
 
 
 # 1️⃣ Setup
+<!-- instruction to install minikube -->
+<!-- What if you don't have zsh? -->
 ### ZSH autocompletions
 Add the two following lines at the end of your ~/.zshrc file then reopen a new terminal:
 ```
@@ -63,19 +65,34 @@ See the [following](https://stackoverflow.com/questions/52310599/what-does-minik
 ```
 docker build -t app .
 ```
-
+<!-- Leg je in de presentatie uit, wat hier precies gebeurd? Wat is het verschil met als je het image lokaal op je computer bouwt? En waarom kunnen images allemaal nog meer vandaan komen. -->
 # 4️⃣ Create a K8s Service
 ❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. What port should you it target ?
+
+<!-- woord teveel in laaste zin. -->
+
+<!-- Leg je tijdens de presentatie uit welke verschillende services er zijn? anders lees je denk ik vrij snel heen over de instructie dat het een loadbalancer moet zijn. Je zou sowieso alle eisen als puntenlijst weer kunnen geven, zodat je als een soort van checklist kan zien of je alles goed hebt gedaan.-->
 
 <details>
   <summary markdown='span'> 💡 Target hint </summary>
     The target port should correspond to the port on which you are exposing your Fastapi application.
 </details>
 
+<!-- We zouden ook het kubernetes dashboard kunnen laten zien, (kan je opstarten met 'minikube dashboard') om een beeld te krijgen van wat er draait en om te debuggen. -->
+
+
 ❓ Apply the service by running:
 ```bash
 kubectl apply -f api-service.yaml
 ```
+
+<!-- Ik denk dat het nog moeilijk in te schatten kan zijn wanneer je klaar bent, of wanneer je dit goed hebt gedaan.
+
+Hoe kan je checken dat je configuratie goed is?
+
+Bijvoorbeeld met kubectl get services, en dan moet je je service zien. 
+
+Nu vind ik het eigenijk ook logischer, dat je eerst de deployment maakt eigenlijk. Dan kan je daarna, als je de service hebt gemaakt direct testen of hij-->
 
 # 5️⃣ Create a K8s Deployment
 ❓ Create a configuration file for our deployment - `k8s-deployment/api/api-deployment.yaml`
@@ -84,6 +101,14 @@ kubectl apply -f api-service.yaml
 ```bash
 kubectl apply -f api-deployment.yaml
 ```
+<!-- welke velden van deployment kan je negeren? -->
+
+<!-- Welk velden moet je goed invullen? -->
+
+<!-- leg je uit wat een livenessprobe is? en waarom kan die weg? -->
+
+<!-- Is er een manier om (zonder metrics exporter) te zien of je deployment meer resources nodig heeft? De mijne crashte bij te weinig resources maar ik zag niet direct dat het daaraan lag. -->
+
 
 # 6️⃣ Forwarding the service
 ```bash
@@ -101,9 +126,21 @@ Or send a post request to the `/train` endpoint by running:
 poetry run python -m api.api_requests -e train
 ```
 
+<!-- poetry script werkt bij mij niet :( -->
+
+<!-- (k8s_training) minikube:default jaspers_walkthrough ~/docs/work/bdr/kennis/k8s_training $ bash poetry run python -m api.api_requests -e train
+/home/jasper/anaconda3/envs/k8s_training/bin/poetry: line 3: import: command not found
+/home/jasper/anaconda3/envs/k8s_training/bin/poetry: line 4: import: command not found
+/home/jasper/anaconda3/envs/k8s_training/bin/poetry: line 5: from: command not found
+/home/jasper/anaconda3/envs/k8s_training/bin/poetry: poetry: line 7: syntax error near unexpected token `('
+/home/jasper/anaconda3/envs/k8s_training/bin/poetry: poetry: line 7: `    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])' -->
+
 This will train a Random Forest model on `data/train.csv` and save a model under `artifacts/rf.pkl`.
 
 Before we can trigger the `\predict` endpoint we need to set up a database in order to store the predictions.
+
+<!-- de Cronjob en de RollingRestart nog toevoegen-->
+
 
 # 8️⃣ Incorporate a database 💾
 ### 8.1) Volumes
