@@ -26,8 +26,8 @@ COPY --from=build /app/requirements.txt .
 
 RUN set -ex \
     # Create a non-root user
-    && addgroup --system appuser \
-    && adduser --system --ingroup appuser --no-create-home appuser \
+    && addgroup --system --gid 1001 appgroup \
+    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
     # Upgrade the package index and install security upgrades
     && apt-get update \
     && apt-get upgrade -y \
