@@ -108,8 +108,16 @@ This will train a Random Forest model on `data/train.csv` and save a model under
 
 Before we can trigger the `\predict` endpoint we need to set up a database in order to store the predictions.
 
-# 8️⃣ Incorporate a database 💾
-### 8.1) Volumes
+# 8️⃣ Set up a Cron job
+We want to train our model every day at 8am. We can do this by creating a Cron job.
+
+❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `poetry run python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
+
+❓ It is also possible to manually test the cronjob, have a look into the documentation for more information.
+
+
+# 9️⃣ Incorporate a database 💾
+### 9.1) Volumes
 It is now time to incorporate Postgres into the setup in order to store the data and the results from the ML model. Just like in Docker-compose we need to keep our Postgres data into volumes. In Kubernetes there are two parts to volumes though - **volumes**, and **volume claims**.
 - **Volumes**: this creates the space on the cluster for a database
 - **Volume claims**: this gives a pod access to that volume - it therefore describes how the pod will be accessing the volume and how much space it can claim on this total volume.
@@ -118,7 +126,7 @@ It is now time to incorporate Postgres into the setup in order to store the data
 
 ❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
 
-### 8.2) ConfigMap
+### 9.2) ConfigMap
 `ConfigMaps` provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Here is an example:
 
 ```yaml
@@ -136,7 +144,7 @@ data:
 3. POSTGRES_PORT 👉 this should be "5432"
 
 
-### 8.2) Secrets
+### 9.3) Secrets
 For sensitive data, such as user credentials, **Kubernetes Secrets** allow you to more safely store data in the cluster. Like **ConfigMap**, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
 
 ❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`. The variables that we need to set are:
@@ -152,7 +160,7 @@ printf password | base64
 Now we have our secrets and are ready to create our Postgres pod! 🚀
 
 
-### 8.3) Statefulset
+### 9.4) Statefulset
 **Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a **StatefulSet** as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the **persistent** pod identifiers make it easier to match existing volumes to the new Pods that **replace** any that have failed ❌.
 
 ❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values. You need to use the environment variables from your ConfigMaps file and the secrets from `postgres-secrets`.
@@ -162,24 +170,24 @@ Now we have our secrets and are ready to create our Postgres pod! 🚀
 ❓ Also make a persistentVolumeClaim using the mounted volume 👆
 
 
-### 8.4) Service
+### 9.5) Service
 ❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
 
-### 8.5) Connect it all together!
+### 9.6) Connect it all together!
 Apply your postgres configuration by running from the **k8s-deployment** subdirectory:
 
 ```bash
 kubectl apply -f . --recursive
 ```
 
-### 8.6) Test your solution
+### 9.7) Test your solution
 Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
 ```bash
 poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
-### 9️⃣ Setting up Loki
+### 🔟 Setting up Loki
 Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
 Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
