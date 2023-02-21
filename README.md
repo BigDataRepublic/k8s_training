@@ -7,6 +7,8 @@ The main things that you should know is that we want to store the predictions of
 
 
 # 1️⃣ Setup
+Intallation instructions for Minikube can be found here: https://minikube.sigs.k8s.io/docs/start/
+
 ### ZSH autocompletions
 Add the two following lines at the end of your ~/.zshrc file then reopen a new terminal:
 ```
@@ -30,6 +32,7 @@ Before you get started there are some key extensions we need for VSCode to make 
 
 
 # 2️⃣ Launching Minikube
+
 The first step is to make sure that your Docker daemon is running. One way to do this is to start Docker Desktop on your machine. Then run the following command from your terminal:
 ```bash
 minikube start
@@ -65,7 +68,7 @@ docker build -t app .
 ```
 
 # 4️⃣ Create a K8s Service
-❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. What port should you it target ?
+❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. Which port should it target ?
 
 <details>
   <summary markdown='span'> 💡 Target hint </summary>
