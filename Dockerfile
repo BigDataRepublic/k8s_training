@@ -25,9 +25,6 @@ WORKDIR /app
 COPY --from=build /app/requirements.txt .
 
 RUN set -ex \
-    # Create a non-root user
-    && addgroup --system --gid 1001 appgroup \
-    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
     # Upgrade the package index and install security upgrades
     && apt-get update \
     && apt-get upgrade -y \
@@ -44,10 +41,4 @@ COPY ./api api
 
 EXPOSE 8000
 
-# give permission to write files to the artifacts subdirectory
-RUN chown -R appuser:appuser /app/artifacts
-
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-# Set the user to run the application
-USER appuser
