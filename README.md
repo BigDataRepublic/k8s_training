@@ -222,3 +222,10 @@ kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --
 ```
 
 Navigate to `http://localhost:3000` and login with admin and the password output above.
+  
+### 11 Bonus: Setting up Streamlit
+Create an extra deployment and service for the Streamlit application, which can be found in the dashboard subdirectory.
+  
+### 12 Bonus: Setting up Adminer
+Set up an Adminer service to be able to interact with the database using a UI. https://hub.docker.com/_/adminer
+
