@@ -122,7 +122,7 @@ We want to train our model every day at 8am. We can do this by creating a Cron j
     - name: ENV
       value: "fastapi-service"
     ```
-    Not too sure why this is necessary, but it will fail otherwise.
+    This is because the api_requests file uses this env variable as an input to determine where it should send the request to.
 </details>
 
 ❓ It is also possible to manually test the cronjob, have a look into the documentation for more information.
