@@ -194,7 +194,19 @@ Apply your postgres configuration by running from the **k8s-deployment** subdire
 ```bash
 kubectl apply -f . --recursive
 ```
+  
+### 9.6.5 
+Now that the database is up and running, we need to actually create a database in the container. 
 
+```bash
+kubectl exec -it postgres-statefulset-0 -- psql -h localhost -U user --password -p 5432
+```
+Fill in your password. Then create a database using:
+
+```bash
+CREATE database database;
+```
+  
 ### 9.7) Test your solution
 Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
 ```bash
@@ -202,6 +214,7 @@ poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
+  
 ### 🔟 Setting up Loki
 Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
