@@ -128,8 +128,8 @@ We want to train our model every day at 8am. We can do this by creating a Cron j
 ❓ It is also possible to manually test the cronjob, have a look into the documentation for more information.
 
   
-# 8️⃣.5 Updating your deployment
-Make a small change to the code of the API (e.g. an extra print statement), and see if you can rebuild your image with a new tag and update the deployment with this new image. 
+# 8️⃣.5️⃣ Updating your deployment
+Make a small change to the code of the API (e.g. an extra print statement), and see if you can rebuild your image with a new tag and update the deployment with this new image. Check the cheatsheet if you are not sure on how to do this. 
 
 # 9️⃣ Incorporate a database 💾
 ### 9.1) Volumes
