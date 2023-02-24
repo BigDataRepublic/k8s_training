@@ -111,7 +111,7 @@ Before we can trigger the `\predict` endpoint we need to set up a database in or
 # 8️⃣ Set up a Cron job
 We want to train our model every day at 8am. We can do this by creating a Cron job.
 
-❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `poetry run python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
+❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
 
 <details>
   <summary markdown='span'> 💡 Hint </summary>
