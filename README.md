@@ -90,7 +90,7 @@ kubectl apply -f api-deployment.yaml
 
 # 6️⃣ Forwarding the service
 ```bash
-kubectl port-forward service/fastapi-service 8000:4000
+kubectl port-forward service/fastapi-service 8000:8000
 ```
 
 # 7️⃣ Sending a request
