@@ -36,6 +36,7 @@ Theorie
 * componenten: kubeapi, etcd, nodes, operators, ...
 * namespaces
 * configmaps
+* rolling update, talk about different deployment strategies.
 * volumes
 * autoscaling + metrics - afhankelijk van voorbeeld
 * secrets
