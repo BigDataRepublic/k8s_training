@@ -241,7 +241,7 @@ Create an extra deployment and service for the Streamlit application, which can 
 # 1️⃣2️⃣ Setting up Adminer
 Set up an Adminer service to be able to interact with the database using a UI. https://hub.docker.com/_/adminer
 
-# 1️⃣3️⃣ Bonus: Autoscaling
+# 1️⃣3️⃣ Autoscaling
 
 
 1. We start with enabling the metrics server in minikube. By default it's turned off but it is neccessary to monitor the resources (like cpu and ram) a pod uses. A horizontalPodAutoscaler needs that information the decide whether it should scale up or down an application.
