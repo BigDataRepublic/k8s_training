@@ -1,0 +1,9 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: curlscript
+  namespace: default
+data:
+  curl.sh: |
+    #!/bin/bash
+    curl -d {"model_path":"artifacts/rf.pkl", "data_path":"data/train.csv"} -H "Content-Type: application/json" -X POST http://api-jasper:8000/train]

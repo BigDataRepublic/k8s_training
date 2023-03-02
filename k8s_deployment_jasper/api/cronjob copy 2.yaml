@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bins
+data:
+  hello: |
+    #!/bin/bash
+    echo "Hello, ConfigMap!"
+    exec sleep 86400
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hellobash
+  namespace: default
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: hello
+              image: ubuntu:latest
+              command: ["bash"]        # example command simulating a bug which triggers the FailJob action
+              args:
+                - -c
+                - ls /bin
+              volumeMounts:
+                - name: bins
+                  mountPath: /bin
+          volumes:
+            - name: bins
+              configMap:
+                name: bins
+                defaultMode: 0744
+          restartPolicy: OnFailure

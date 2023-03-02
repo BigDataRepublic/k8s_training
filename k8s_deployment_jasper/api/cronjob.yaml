@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+  namespace: default
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: app:latest
+            imagePullPolicy: Never
+            args: ['python', '-m', 'api.api_requests', '-e', 'train']
+            env:
+              - name: ENV
+                value: "api-jasper"
+          restartPolicy: OnFailure
