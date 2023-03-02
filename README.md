@@ -7,6 +7,8 @@ The main things that you should know is that we want to store the predictions of
 
 
 # 1️⃣ Setup
+Intallation instructions for Minikube can be found here: https://minikube.sigs.k8s.io/docs/start/
+
 ### ZSH autocompletions
 Add the two following lines at the end of your ~/.zshrc file then reopen a new terminal:
 ```
@@ -30,6 +32,7 @@ Before you get started there are some key extensions we need for VSCode to make 
 
 
 # 2️⃣ Launching Minikube
+
 The first step is to make sure that your Docker daemon is running. One way to do this is to start Docker Desktop on your machine. Then run the following command from your terminal:
 ```bash
 minikube start
@@ -65,7 +68,7 @@ docker build -t app .
 ```
 
 # 4️⃣ Create a K8s Service
-❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. What port should you it target ?
+❓ Create your own `api-service.yaml` in the `k8s-deployment/api` folder and populate it with a `LoadBalancer` service, with name `fastapi-service` and selector app: `fastapi`. Which port should it target ?
 
 <details>
   <summary markdown='span'> 💡 Target hint </summary>
@@ -87,7 +90,7 @@ kubectl apply -f api-deployment.yaml
 
 # 6️⃣ Forwarding the service
 ```bash
-kubectl port-forward service/fastapi-service 8000:4000
+kubectl port-forward service/fastapi-service 8000:8000
 ```
 
 # 7️⃣ Sending a request
@@ -105,8 +108,31 @@ This will train a Random Forest model on `data/train.csv` and save a model under
 
 Before we can trigger the `\predict` endpoint we need to set up a database in order to store the predictions.
 
-# 8️⃣ Incorporate a database 💾
-### 8.1) Volumes
+# 8️⃣ Set up a Cron job
+We want to train our model every day at 8am. We can do this by creating a Cron job.
+
+❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
+
+<details>
+  <summary markdown='span'> 💡 Hint </summary>
+    You need to set an ENV variable in the container env to your fastapi service. You can do this by adding the following line to the container spec:
+
+    ```yaml
+    env:
+    - name: ENV
+      value: "fastapi-service"
+    ```
+    This is because the api_requests file uses this env variable as an input to determine where it should send the request to.
+</details>
+
+❓ It is also possible to manually test the cronjob, have a look into the documentation for more information.
+
+  
+# 8️⃣.5️⃣ Updating your deployment
+Make a small change to the code of the API (e.g. an extra print statement), and see if you can rebuild your image with a new tag and update the deployment with this new image. Check the cheatsheet if you are not sure on how to do this. 
+
+# 9️⃣ Incorporate a database 💾
+### 9.1) Volumes
 It is now time to incorporate Postgres into the setup in order to store the data and the results from the ML model. Just like in Docker-compose we need to keep our Postgres data into volumes. In Kubernetes there are two parts to volumes though - **volumes**, and **volume claims**.
 - **Volumes**: this creates the space on the cluster for a database
 - **Volume claims**: this gives a pod access to that volume - it therefore describes how the pod will be accessing the volume and how much space it can claim on this total volume.
@@ -115,7 +141,7 @@ It is now time to incorporate Postgres into the setup in order to store the data
 
 ❓ Incorporate a volume claim in `k8s-deployment/postgres/postgres-pvc.yaml`
 
-### 8.2) ConfigMap
+### 9.2) ConfigMap
 `ConfigMaps` provide a means to store environment parameters in Kubernetes, to be fetched by a Pod when it starts. Here is an example:
 
 ```yaml
@@ -133,7 +159,7 @@ data:
 3. POSTGRES_PORT 👉 this should be "5432"
 
 
-### 8.2) Secrets
+### 9.3) Secrets
 For sensitive data, such as user credentials, **Kubernetes Secrets** allow you to more safely store data in the cluster. Like **ConfigMap**, the values in a Secret can be fetched by a Pod during startup. We need to store some environment variables such as the Postgres user and password as secrets.
 
 ❓ Create another file `postgres-secret.yaml`. You can use the **k8sSecret** template. Then set the name to `postgres-secrets`. The variables that we need to set are:
@@ -149,7 +175,7 @@ printf password | base64
 Now we have our secrets and are ready to create our Postgres pod! 🚀
 
 
-### 8.3) Statefulset
+### 9.4) Statefulset
 **Statefulsets** are like **Deployments**, except that a **StatefulSet** maintains a sticky identity for each of their pods. If you want to use storage volumes to provide **persistence** for your workload, you can use a **StatefulSet** as part of the solution. Although individual Pods in a StatefulSet are susceptible to failure, the **persistent** pod identifiers make it easier to match existing volumes to the new Pods that **replace** any that have failed ❌.
 
 ❓ Create another file called `postgres-statefulset.yaml`. Use the `k8sStatefulSet` template to create the outline and fill it with the right values. You need to use the environment variables from your ConfigMaps file and the secrets from `postgres-secrets`.
@@ -159,24 +185,37 @@ Now we have our secrets and are ready to create our Postgres pod! 🚀
 ❓ Also make a persistentVolumeClaim using the mounted volume 👆
 
 
-### 8.4) Service
+### 9.5) Service
 ❓ Also create a service file for your Postgres statefulset. The targetPort should be the same as the one statefulset is exposing.
 
-### 8.5) Connect it all together!
+### 9.6) Connect it all together!
 Apply your postgres configuration by running from the **k8s-deployment** subdirectory:
 
 ```bash
 kubectl apply -f . --recursive
 ```
+  
+### 9.6.5 
+Now that the database is up and running, we need to actually create a database in the container. 
 
-### 8.6) Test your solution
+```bash
+kubectl exec -it postgres-statefulset-0 -- psql -h localhost -U user --password -p 5432
+```
+Fill in your password. Then create a database using:
+
+```bash
+CREATE database database;
+```
+  
+### 9.7) Test your solution
 Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
 ```bash
 poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
-### 9️⃣ Setting up Loki
+  
+# 🔟 Setting up Loki
 Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
 Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
@@ -196,3 +235,42 @@ kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --
 ```
 
 Navigate to `http://localhost:3000` and login with admin and the password output above.
+  
+# 1️⃣1️⃣ Setting up Streamlit
+Create an extra deployment and service for the Streamlit application, which can be found in the dashboard subdirectory.
+  
+# 1️⃣2️⃣ Setting up Adminer
+Set up an Adminer service to be able to interact with the database using a UI. https://hub.docker.com/_/adminer
+
+# 1️⃣3️⃣ Bonus: Autoscaling
+
+
+1. We start with enabling the metrics server in minikube. By default it's turned off but it is neccessary to monitor the resources (like cpu and ram) a pod uses. A horizontalPodAutoscaler needs that information the decide whether it should scale up or down an application.
+    ```
+    minikube addons enable metrics-server
+    ```
+
+1. Check if the metrics-server is enabled.
+    ```
+    minikube addons list
+    ```
+
+1. Have a look at the `k8s-deployment/scaling/deployment.yaml` and `k8s-deployment/scaling/service.yaml` and apply them to the cluster.
+    
+    How many pods are created by the deployment?
+
+1. Examine `k8s-deployment/scaling/hpa.yaml` and apply the HorizontalPodAutoscaler to the cluster.
+
+    As you may notice, the deployment in the cluster now differece from the version you applied to the cluster.
+
+1. Now we are going to increase the load to the pods of our deployment, and see how this effects the replicas. You can monitor the pods in your cluster with the kubernetes dashboard or on the command line.
+
+    Increase the load:
+    ```
+    kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://php-apache; done"
+
+    ```
+
+    Decrease the load by interupting the command with `CTRL-C`.
+
+6. Instructions are based on this [blogpost](https://www.bogotobogo.com/DevOps/Docker/Docker-Kubernetes-Horizontal-Pod-Autoscaler.php) and the kubernetes [documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
