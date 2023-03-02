@@ -214,8 +214,7 @@ poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
-  
-### 🔟 Setting up Loki
+### 9️⃣ Setting up Loki
 Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
 Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
@@ -236,9 +235,41 @@ kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --
 
 Navigate to `http://localhost:3000` and login with admin and the password output above.
   
-### 11 Bonus: Setting up Streamlit
+# 1️⃣1️⃣ Setting up Streamlit
 Create an extra deployment and service for the Streamlit application, which can be found in the dashboard subdirectory.
   
-### 12 Bonus: Setting up Adminer
+# 1️⃣2️⃣ Setting up Adminer
 Set up an Adminer service to be able to interact with the database using a UI. https://hub.docker.com/_/adminer
 
+# 1️⃣3️⃣ Bonus: Autoscaling
+
+
+1. We start with enabling the metrics server in minikube. By default it's turned off but it is neccessary to monitor the resources (like cpu and ram) a pod uses. A horizontalPodAutoscaler needs that information the decide whether it should scale up or down an application.
+    ```
+    minikube addons enable metrics-server
+    ```
+
+1. Check if the metrics-server is enabled.
+    ```
+    minikube addons list
+    ```
+
+1. Have a look at the `k8s-deployment/scaling/deployment.yaml` and `k8s-deployment/scaling/service.yaml` and apply them to the cluster.
+    
+    How many pods are created by the deployment?
+
+1. Examine `k8s-deployment/scaling/hpa.yaml` and apply the HorizontalPodAutoscaler to the cluster.
+
+    As you may notice, the deployment in the cluster now differece from the version you applied to the cluster.
+
+1. Now we are going to increase the load to the pods of our deployment, and see how this effects the replicas. You can monitor the pods in your cluster with the kubernetes dashboard or on the command line.
+
+    Increase the load:
+    ```
+    kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://php-apache; done"
+
+    ```
+
+    Decrease the load by interupting the command with `CTRL-C`.
+
+6. Instructions are based on this [blogpost](https://www.bogotobogo.com/DevOps/Docker/Docker-Kubernetes-Horizontal-Pod-Autoscaler.php) and the kubernetes [documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
