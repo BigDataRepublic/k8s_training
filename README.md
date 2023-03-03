@@ -90,7 +90,7 @@ kubectl apply -f api-deployment.yaml
 
 # 6️⃣ Forwarding the service
 ```bash
-kubectl port-forward service/fastapi-service 8000:4000
+kubectl port-forward service/fastapi-service 8000:8000
 ```
 
 # 7️⃣ Sending a request
@@ -111,7 +111,7 @@ Before we can trigger the `\predict` endpoint we need to set up a database in or
 # 8️⃣ Set up a Cron job
 We want to train our model every day at 8am. We can do this by creating a Cron job.
 
-❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `poetry run python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
+❓ Create a file `cronjob.yaml`. You can use the k8CronJob template. Then set the name to `train-model`. The command that we want to run is `python -m api.api_requests -e train`. The schedule should be `0 8 * * *`.
 
 <details>
   <summary markdown='span'> 💡 Hint </summary>
@@ -122,11 +122,14 @@ We want to train our model every day at 8am. We can do this by creating a Cron j
     - name: ENV
       value: "fastapi-service"
     ```
-    Not too sure why this is necessary, but it will fail otherwise.
+    This is because the api_requests file uses this env variable as an input to determine where it should send the request to.
 </details>
 
 ❓ It is also possible to manually test the cronjob, have a look into the documentation for more information.
 
+  
+# 8️⃣.5️⃣ Updating your deployment
+Make a small change to the code of the API (e.g. an extra print statement), and see if you can rebuild your image with a new tag and update the deployment with this new image. Check the cheatsheet if you are not sure on how to do this. 
 
 # 9️⃣ Incorporate a database 💾
 ### 9.1) Volumes
@@ -191,7 +194,19 @@ Apply your postgres configuration by running from the **k8s-deployment** subdire
 ```bash
 kubectl apply -f . --recursive
 ```
+  
+### 9.6.5 
+Now that the database is up and running, we need to actually create a database in the container. 
 
+```bash
+kubectl exec -it postgres-statefulset-0 -- psql -h localhost -U user --password -p 5432
+```
+Fill in your password. Then create a database using:
+
+```bash
+CREATE database database;
+```
+  
 ### 9.7) Test your solution
 Port-forward your fastapi-server again and send a post request to the `/predict` endpoint by running:
 ```bash
@@ -199,7 +214,7 @@ poetry run python -m api.api_requests -e predict
 ```
 
 This should store predictions for the `data/test.csv` file into the `postgres` database. 🎉🎉🎉
-### 🔟 Setting up Loki
+# 1️⃣0️⃣ Setting up Loki
 Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. It makes it much more convenient to view your Kubernetes logs and to set alerts on them, which you can for example send to a Slack channel.
 
 Instead of writing our own deployment and service file, we can also use [Helm](https://helm.sh) charts to immediately deploy the application onto our cluster. Installation instructions for Helm can be found [here](https://helm.sh/docs/intro/install/).
@@ -219,3 +234,42 @@ kubectl get secret loki-grafana -o jsonpath="{.data.admin-password}" | base64 --
 ```
 
 Navigate to `http://localhost:3000` and login with admin and the password output above.
+  
+# 1️⃣1️⃣ Setting up Streamlit
+Create an extra deployment and service for the Streamlit application, which can be found in the dashboard subdirectory.
+  
+# 1️⃣2️⃣ Setting up Adminer
+Set up an Adminer service to be able to interact with the database using a UI. https://hub.docker.com/_/adminer
+
+# 1️⃣3️⃣ Autoscaling
+
+
+1. We start with enabling the metrics server in minikube. By default it's turned off but it is neccessary to monitor the resources (like cpu and ram) a pod uses. A horizontalPodAutoscaler needs that information the decide whether it should scale up or down an application.
+    ```
+    minikube addons enable metrics-server
+    ```
+
+1. Check if the metrics-server is enabled.
+    ```
+    minikube addons list
+    ```
+
+1. Have a look at the `k8s-deployment/scaling/deployment.yaml` and `k8s-deployment/scaling/service.yaml` and apply them to the cluster.
+    
+    How many pods are created by the deployment?
+
+1. Examine `k8s-deployment/scaling/hpa.yaml` and apply the HorizontalPodAutoscaler to the cluster.
+
+    As you may notice, the deployment in the cluster now differece from the version you applied to the cluster.
+
+1. Now we are going to increase the load to the pods of our deployment, and see how this effects the replicas. You can monitor the pods in your cluster with the kubernetes dashboard or on the command line.
+
+    Increase the load:
+    ```
+    kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://php-apache; done"
+
+    ```
+
+    Decrease the load by interupting the command with `CTRL-C`.
+
+6. Instructions are based on this [blogpost](https://www.bogotobogo.com/DevOps/Docker/Docker-Kubernetes-Horizontal-Pod-Autoscaler.php) and the kubernetes [documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
