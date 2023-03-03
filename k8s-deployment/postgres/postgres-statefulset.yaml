@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: postgres # has to match .spec.template.metadata.labels
+  serviceName: "postgres"
+  replicas: 3 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: postgres # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: postgres
+        image: postgres:11.4
+        env:
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: postgresmount
+          mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgresmount
+          persistentVolumeClaim:
+            claimName: postgresql-data-claim

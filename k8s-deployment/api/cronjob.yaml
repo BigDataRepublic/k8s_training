@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: train-model
+  namespace: default
+spec:
+  schedule: "0 8 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fastapi
+            env:
+            - name: ENV
+              value: "fastapi-service"
+            image: app:latest
+            command: 
+            - poetry run python -m api.api_requests -e train
+          restartPolicy: OnFailure

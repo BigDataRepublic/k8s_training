@@ -45,7 +45,7 @@ Starting minikube can take a few minutes. You should get the following message:
 
 This means that you are now able to interact with the minikube cluster using `kubectl`. One thing that we can do is to inspect the cluster node:
 ```bash
-kubectl get node
+kubectl get nodes
 ```
 
 You should see something like:
